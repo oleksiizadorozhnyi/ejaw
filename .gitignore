@@ -1,0 +1,5 @@
+.idea
+.DS_Store
+.env
+/go.mod
+/go.sum
