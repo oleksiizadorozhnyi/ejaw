@@ -11,6 +11,7 @@ import (
 )
 
 var ErrPhoneExists = errors.New("phone number already exists")
+var ErrPhoneDoesNotExist = errors.New("phone number does not exist")
 
 type SellerRepository struct {
 	db *sql.DB
@@ -48,6 +49,20 @@ func (r *SellerRepository) Create(seller *models.Seller) error {
 	}
 
 	query := "INSERT INTO sellers (id, name, phone) VALUES (gen_random_uuid(), $1, $2) RETURNING id"
+	return r.db.QueryRow(query, seller.Name, seller.Phone).Scan(&seller.ID)
+}
+
+func (r *SellerRepository) Update(seller *models.Seller) error {
+	var exists bool
+	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM sellers WHERE phone = $1)", seller.Phone).Scan(&exists)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return ErrPhoneDoesNotExist
+	}
+
+	query := "UPDATE sellers SET name = $1 WHERE phone = $2 RETURNING id"
 	return r.db.QueryRow(query, seller.Name, seller.Phone).Scan(&seller.ID)
 }
 

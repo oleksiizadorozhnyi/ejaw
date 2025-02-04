@@ -13,8 +13,12 @@ func NewSellerService(repo *repository.SellerRepository) (*SellerService, error)
 	return &SellerService{repo: repo}, nil
 }
 
-func (s SellerService) CreateOrUpdateSeller(seller *models.Seller) error {
+func (s SellerService) CreateSeller(seller *models.Seller) error {
 	return s.repo.Create(seller)
+}
+
+func (s SellerService) UpdateSeller(seller *models.Seller) error {
+	return s.repo.Update(seller)
 }
 
 func (s SellerService) DeleteSeller(phonenumber string) error {

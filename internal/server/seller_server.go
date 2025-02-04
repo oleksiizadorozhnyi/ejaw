@@ -29,6 +29,7 @@ func (s *SellerServer) Run(addr string) error {
 	http.HandleFunc("/sellers", s.basicAuth(s.GetSellers))
 	http.HandleFunc("/create_seller", s.basicAuth(s.CreateSeller))
 	http.HandleFunc("/delete_seller", s.basicAuth(s.DeleteSeller))
+	http.HandleFunc("/update_seller", s.basicAuth(s.UpdateSeller))
 
 	return http.ListenAndServe(addr, nil)
 }
@@ -52,9 +53,28 @@ func (s *SellerServer) CreateSeller(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
-	if err := s.service.CreateOrUpdateSeller(&seller); err != nil {
+	if err := s.service.CreateSeller(&seller); err != nil {
 		if errors.Is(err, repository.ErrPhoneExists) {
 			http.Error(w, "Phone number already exist", http.StatusBadRequest)
+			return
+		}
+		zap.L().Error("Internal server error", zap.Error(err))
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(seller)
+}
+
+func (s *SellerServer) UpdateSeller(w http.ResponseWriter, r *http.Request) {
+	var seller models.Seller
+	if err := json.NewDecoder(r.Body).Decode(&seller); err != nil {
+		zap.L().Error("Invalid JSON payload", zap.Error(err))
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+	if err := s.service.UpdateSeller(&seller); err != nil {
+		if errors.Is(err, repository.ErrPhoneDoesNotExist) {
+			http.Error(w, "Phone number does not exist", http.StatusBadRequest)
 			return
 		}
 		zap.L().Error("Internal server error", zap.Error(err))
