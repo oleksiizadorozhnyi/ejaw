@@ -17,6 +17,10 @@ func (s SellerService) CreateOrUpdateSeller(seller *models.Seller) error {
 	return s.repo.Create(seller)
 }
 
+func (s SellerService) DeleteSeller(phonenumber string) error {
+	return s.repo.DeleteByPhone(phonenumber)
+}
+
 func (s SellerService) GetSellers() ([]models.Seller, error) {
 	return s.repo.GetSellers()
 }
